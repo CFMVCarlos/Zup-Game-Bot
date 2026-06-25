@@ -1,0 +1,3 @@
+## 2024-06-25 - Bounding box optimization for ImageGrab.grab()
+**Learning:** Calling `ImageGrab.grab()` continuously in a loop for full-screen resolution (e.g., 2560x1440) creates a massive performance bottleneck, particularly because we only needed to check a few specific coordinates.
+**Action:** Always pre-compute the target coordinates to construct a minimal bounding box (`bbox`). Pass this bounding box into `ImageGrab.grab(bbox=...)` to capture only the small subset of the screen, which drastically improves performance. Ensure you calculate relative coordinates within the captured bounding box for pixel checking.
