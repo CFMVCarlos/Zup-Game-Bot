@@ -25,26 +25,36 @@ async def mouse_click(x, y):
     await asyncio.sleep(0.1)  # Brief delay after the click
 
 
+# Pre-compute coordinates and bounding box for checkOut optimization
+_checkout_original_coords = [
+    (2357, 1070),
+    (2357, 1162),
+    (2357, 1283)
+]
+_scaled_coords = [(int(x), int(y)) for x, y in [convert_coords(cx, cy) for cx, cy in _checkout_original_coords]]
+_min_x = min(x for x, y in _scaled_coords)
+_max_x = max(x for x, y in _scaled_coords)
+_min_y = min(y for x, y in _scaled_coords)
+_max_y = max(y for x, y in _scaled_coords)
+_checkout_bbox = (_min_x, _min_y, _max_x + 1, _max_y + 1)
+_checkout_local_coords = [(x - _min_x, y - _min_y) for x, y in _scaled_coords]
+
+
 def checkOut():
     """
     Check the RGB values of three specific screen locations to determine if a certain condition is met.
     Returns True if any of the points exceed the RGB threshold.
     """
-    # Define the coordinates to check
-    coords = [
-        (2357, 1070),
-        (2357, 1162),
-        (2357, 1283)
-    ]
-    # Convert the coordinates to the current screen resolution
-    scaled_coords = [convert_coords(x, y) for x, y in coords]
-    # Grab the screen image once to avoid multiple grabs
-    screen = ImageGrab.grab().load()
-    # Define the RGB sum threshold
-    threshold = 190 + 255 + 255  # 700
+    # Grab only the bounding box containing our target pixels for massive performance gain
+    screen = ImageGrab.grab(bbox=_checkout_bbox).load()
+
+    # 190 + 255 + 255
+    threshold = 700
+
     # Check if any of the points exceed the threshold
-    for x, y in scaled_coords:
-        if sum(screen[int(x), int(y)]) > threshold:
+    for x, y in _checkout_local_coords:
+        # Check only first 3 channels (RGB) to safely support RGBA captures if present
+        if sum(screen[x, y][:3]) > threshold:
             return True
     return False
 
