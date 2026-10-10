@@ -1,0 +1,899 @@
+diff --git a/.jules/bolt.md b/.jules/bolt.md
+index aed30c3..3fd7e6c 100644
+--- a/.jules/bolt.md
++++ b/.jules/bolt.md
+@@ -1,3 +1,6 @@
+ ## 2024-06-25 - Bounding box optimization for ImageGrab.grab()
+ **Learning:** Calling `ImageGrab.grab()` continuously in a loop for full-screen resolution (e.g., 2560x1440) creates a massive performance bottleneck, particularly because we only needed to check a few specific coordinates.
+ **Action:** Always pre-compute the target coordinates to construct a minimal bounding box (`bbox`). Pass this bounding box into `ImageGrab.grab(bbox=...)` to capture only the small subset of the screen, which drastically improves performance. Ensure you calculate relative coordinates within the captured bounding box for pixel checking.
++## 2024-05-18 - [Optimizing CheckOut Function with Bounding Box]
++**Learning:** The checkOut function captured the full screen on every iteration which was incredibly slow. By limiting ImageGrab to a small bounding box surrounding the expected checkout coordinates, CPU usage is minimized and cycle times are drastically improved.
++**Action:** Always constrain screenshot/pixel checks to the smallest necessary bounding box rather than capturing the entire screen.
+diff --git a/Levels.py b/Levels.py
+deleted file mode 100644
+index 1053b3b..0000000
+--- a/Levels.py
++++ /dev/null
+@@ -1,99 +0,0 @@
+-import asyncio
+-# Import the level interaction function
+-from common import level_template_click
+-
+-
+-# Function to execute a sequence of level clicks
+-async def run_levels():
+-    """
+-    Runs through a predefined sequence of levels by simulating clicks at specific coordinates.
+-    Each level may have different coordinates, delays, or additional parameters.
+-    """
+-    # A
+-    await level_template_click(1, 1303, 800)
+-    # B
+-    await level_template_click(2, 1245, 800)
+-    # C
+-    await level_template_click(3, 1245, 800)
+-    # D
+-    await level_template_click(4, 1245, 800)
+-    # E
+-    await level_template_click(5, 1234, 760)
+-    # F
+-    await level_template_click(6, 1410, 803)
+-    # G
+-    await level_template_click(7, 1232, 808)
+-    # H
+-    await level_template_click(8, 1159, 802)
+-    # I
+-    await level_template_click(9, 1276, 556, delay1=0.5)
+-    # J
+-    await level_template_click(10, 1186, 591)
+-    # K
+-    await level_template_click(11, 1232, 764)
+-    # L
+-    await level_template_click(12, 1359, 716, delay1=0.65)
+-    # M
+-    await level_template_click(13, 1361, 636, delay1=0.5)
+-    # N
+-    await level_template_click(14, 1269, 678)
+-    # O
+-    await level_template_click(15, 1233, 678, delay1=1)
+-    # P
+-    await level_template_click(16, 1150, 799, delay1=1)
+-    # Q
+-    await level_template_click(17, 1354, 1133, 947, 1094, delay2=0.5)
+-    # R
+-    await level_template_click(18, 1482, 758, delay1=8)
+-    # S
+-    await level_template_click(19, 1090, 796, 1583, 1138)
+-    # T
+-    await level_template_click(20, 1194, 1135, delay1=2)
+-    # U
+-    await level_template_click(21, 1160, 835, 1361, 584, delay1=0, delay2=0.25)
+-    # V
+-    await level_template_click(22, 1297, 841)
+-    # W
+-    await level_template_click(23, 1325, 761)
+-    # X
+-    await level_template_click(24, 1276, 461, delay1=0.5)
+-    # Y
+-    await level_template_click(25, 416, 581, 1117, 801, 826, 789, delay2=0.5, delay3=0.35)
+-    # Z
+-    await level_template_click(26, 1000, 833, delay1=0.85)
+-    # 0
+-    await level_template_click(27, 489, 874, 902, 1034, delay1=0, delay2=0.5)
+-    # 1
+-    await level_template_click(28, 1406, 747, 1573, 888, 1375, 1087, delay2=1.85, delay3=0.25)
+-    # 2
+-    await level_template_click(29, 910, 1091, reset_time=10)
+-    # 3
+-    await level_template_click(30, 1069, 1091, delay1=1.5)
+-    # 4
+-    await level_template_click(31, 777, 608, delay1=0.17)
+-    # 5
+-    await level_template_click(32, 924, 1052)
+-    # 6
+-    await level_template_click(33, 489, 876, 914, 1030, delay1=0, delay2=0.8)
+-    # 7
+-    await level_template_click(34, 122, 640, 530, 792, delay1=0, delay2=0.85)
+-    # 8
+-    await level_template_click(35, 122, 640, 530, 792, delay1=0, delay2=0.95)
+-    # 9
+-    await level_template_click(36, 1258, 497, 1618, 761, delay1=0, delay2=2.5)
+-    # <
+-    await level_template_click(37, 1779, 970)
+-    # >
+-    await level_template_click(38, 155, 531, reset_time=10)
+-    # #
+-    await level_template_click(39, 155, 532, 1851, 1119, delay1=0, delay2=3)
+-    # !
+-    await level_template_click(40, 740, 597, delay1=1.25)
+-    # @
+-    await level_template_click(41, 1456, 331, delay1=0, reset_time=10)
+-    # $
+-    await level_template_click(42, 137, 435, delay1=1.5)
+-    # ~
+-    await level_template_click(43, 137, 435, delay1=0)
+-    # *
+-    await level_template_click(44, 285, 839, 656, 999, delay1=0, delay2=0.55, reset_time=10)
+diff --git a/ZUP.py b/ZUP.py
+deleted file mode 100644
+index 709fb4b..0000000
+--- a/ZUP.py
++++ /dev/null
+@@ -1,61 +0,0 @@
+-import asyncio
+-import keyboard
+-from Levels import run_levels  # Import function to run game levels
+-# Import function for mouse click actions
+-from common import mouse_click
+-
+-
+-# Simulates a mouse click at a specific screen coordinate
+-async def press_start():
+-    """
+-    Simulates a mouse click at the coordinates (408, 1255).
+-    Used to start the game.
+-    """
+-    await mouse_click(408, 1255)
+-
+-
+-# Main game logic: Starts the game and runs through all levels
+-async def run_game():
+-    """
+-    Initiates the game by clicking 'start' and runs through the game levels.
+-    """
+-    await press_start()
+-    await run_levels()
+-
+-# Main program loop to handle keyboard inputs and control the game
+-
+-
+-async def main():
+-    """
+-    Entry point for the program. 
+-    - Waits for the 'Enter' key to start the game.
+-    - Allows the user to exit the program by pressing 'Esc'.
+-    """
+-    print("Press Enter to start the game. Press Esc to stop the program.")
+-
+-    game_task = None  # Keeps track of the current game task
+-
+-    while True:
+-        # Start the game if 'Enter' is pressed and no game is running
+-        if keyboard.is_pressed('enter') and game_task is None:
+-            print("Game started!")
+-            game_task = asyncio.create_task(
+-                run_game())  # Start the game task in the background
+-
+-        # Exit the program if 'Esc' is pressed
+-        elif keyboard.is_pressed('esc'):
+-            print("Program exited.")
+-            if game_task and not game_task.done():
+-                game_task.cancel()  # Cancel the game task if still running
+-            break
+-
+-        # Sleep briefly to prevent high CPU usage
+-        await asyncio.sleep(0.1)
+-
+-
+-# Run the main function
+-if __name__ == "__main__":
+-    """
+-    Ensures the script runs the `main()` function when executed directly.
+-    """
+-    asyncio.run(main())
+diff --git a/common.py b/common.py
+deleted file mode 100644
+index c268235..0000000
+--- a/common.py
++++ /dev/null
+@@ -1,124 +0,0 @@
+-import asyncio
+-import time
+-import mouse
+-import pyautogui
+-from PIL import ImageGrab
+-
+-# Screen dimensions for coordinate scaling
+-SCREEN_WIDTH, SCREEN_HEIGHT = pyautogui.size()
+-
+-
+-def convert_coords(x, y):
+-    """
+-    Convert coordinates from a 2560x1440 resolution to the current screen resolution.
+-    """
+-    return x * SCREEN_WIDTH / 2560, y * SCREEN_HEIGHT / 1440
+-
+-
+-async def mouse_click(x, y):
+-    """
+-    Simulate a mouse click at the specified coordinates after scaling them to the screen resolution.
+-    """
+-    await asyncio.sleep(0.1)  # Brief delay before the click
+-    mouse.move(*convert_coords(x, y), absolute=True)
+-    mouse.click('left')
+-    await asyncio.sleep(0.1)  # Brief delay after the click
+-
+-
+-# Pre-compute coordinates and bounding box for checkOut optimization
+-_checkout_original_coords = [
+-    (2357, 1070),
+-    (2357, 1162),
+-    (2357, 1283)
+-]
+-_scaled_coords = [(int(x), int(y)) for x, y in [convert_coords(cx, cy) for cx, cy in _checkout_original_coords]]
+-_min_x = min(x for x, y in _scaled_coords)
+-_max_x = max(x for x, y in _scaled_coords)
+-_min_y = min(y for x, y in _scaled_coords)
+-_max_y = max(y for x, y in _scaled_coords)
+-_checkout_bbox = (_min_x, _min_y, _max_x + 1, _max_y + 1)
+-_checkout_local_coords = [(x - _min_x, y - _min_y) for x, y in _scaled_coords]
+-
+-
+-def checkOut():
+-    """
+-    Check the RGB values of three specific screen locations to determine if a certain condition is met.
+-    Returns True if any of the points exceed the RGB threshold.
+-    """
+-    # Grab only the bounding box containing our target pixels for massive performance gain
+-    screen = ImageGrab.grab(bbox=_checkout_bbox).load()
+-
+-    # 190 + 255 + 255
+-    threshold = 700
+-
+-    # Check if any of the points exceed the threshold
+-    for x, y in _checkout_local_coords:
+-        # Check only first 3 channels (RGB) to safely support RGBA captures if present
+-        if sum(screen[x, y][:3]) > threshold:
+-            return True
+-    return False
+-
+-
+-async def Out():
+-    """
+-    Simulate a mouse click to mark the completion of a level.
+-    """
+-    await mouse_click(2357, 1161)
+-
+-
+-async def Reset():
+-    """
+-    Simulate a mouse click to reset the level.
+-    """
+-    await mouse_click(73, 1376)
+-    await asyncio.sleep(0.5)
+-
+-
+-async def level_template_click(level_number, x1, y1, x2=None, y2=None, x3=None, y3=None, delay1=None, delay2=None, delay3=None, reset_time=5):
+-    """
+-    Handles the actions required to complete a level, including retries on timeout.
+-
+-    Parameters:
+-    - level_number: The level number for logging purposes.
+-    - x1, y1: Required primary coordinates to click.
+-    - x2, y2: Optional second set of coordinates to click.
+-    - x3, y3: Optional third set of coordinates to click.
+-    - delay1, delay2, delay3: Optional delays between actions.
+-    """
+-    while True:  # Retry loop for timeout scenarios
+-        await Reset()  # Reset the level
+-
+-        if delay1:
+-            await asyncio.sleep(delay1)
+-
+-        await mouse_click(x1, y1)  # Click the primary location
+-
+-        if delay2:
+-            await asyncio.sleep(delay2)
+-
+-        if x2 and y2:  # Click the secondary location if provided
+-            await mouse_click(x2, y2)
+-
+-        if delay3:
+-            await asyncio.sleep(delay3)
+-
+-        if x3 and y3:  # Click the tertiary location if provided
+-            await mouse_click(x3, y3)
+-
+-        # Start timeout countdown
+-        start_time = time.time()
+-        while checkOut():  # Check for completion condition
+-            if time.time() - start_time > reset_time:  # Timeout after some seconds
+-                print(f"Timeout occurred. Restarting Level {level_number}...")
+-                break  # Retry the level
+-            await asyncio.sleep(0.01)  # Avoid busy waiting
+-        else:
+-            # If checkOut() condition is no longer True, mark the level as complete
+-            await Out()
+-            print(f"Level {level_number} completed!")
+-            break  # Exit retry loop
+-
+-
+-# Entry point for testing the script
+-if __name__ == "__main__":
+-    asyncio.run(level_template_click(1, 1303, 800))
+diff --git a/getMouse.py b/getMouse.py
+deleted file mode 100644
+index b824866..0000000
+--- a/getMouse.py
++++ /dev/null
+@@ -1,25 +0,0 @@
+-import mouse  # Library to handle mouse events
+-import time   # Library for sleep functionality
+-
+-
+-def display_mouse_position():
+-    """
+-    Prints the current mouse position to the console.
+-    Triggered each time the mouse is clicked.
+-    """
+-    position = mouse.get_position()  # Get the current mouse position as a tuple (x, y)
+-    print(f"\nMouse: {position}")    # Print the position in a readable format
+-
+-
+-# Set up an event listener to trigger on mouse click
+-mouse.on_click(lambda: display_mouse_position())
+-
+-print("Listening for mouse clicks. Click anywhere to display the mouse position.")
+-print("Press Ctrl+C to exit.")  # Inform the user how to exit the script
+-
+-# Keep the script running to listen for mouse clicks
+-try:
+-    while True:
+-        time.sleep(0.1)  # Sleep briefly to reduce CPU usage
+-except KeyboardInterrupt:
+-    print("\nProgram exited.")  # Handle graceful exit on Ctrl+C
+diff --git a/requirements.txt b/requirements.txt
+index 67435a7930513bbac3d3c2667a887cbd43330242..a70d8a28ba27f8f3e6fc42a9c8133e74591fa92b 100644
+GIT binary patch
+literal 88
+zcmYdGEG|hb$mA+5%S_HM%Ht}iOi9cu$xP<*%FN43G~x=#%*n|w=gLm4Ov+CzO0l&y
+m&@(jFGv&(7FD*_5@yzuMxdJL3OH1<ILp?zPmU^ZpTwDN6jT^84
+
+literal 104
+zcmezWFPkBip^_nqA)g_Up@<=c!4?P&81xtn8H|CXDFZJ97eg*kwv?e5s1hb?4psq@
+b3jpeN1j?2G)wnZ+GI+w(Sc3JNfK31Z+lddk
+
+diff --git a/src/api/main.py b/src/api/main.py
+new file mode 100644
+index 0000000..596af76
+--- /dev/null
++++ b/src/api/main.py
+@@ -0,0 +1,78 @@
++from fastapi import FastAPI, HTTPException, Request
++from fastapi.responses import HTMLResponse, JSONResponse
++from fastapi.staticfiles import StaticFiles
++from fastapi.templating import Jinja2Templates
++from pydantic import BaseModel
++import os
++
++from src.services.automation import AutomationService
++
++app = FastAPI(
++    title="ZUP Automation API",
++    description="A robust backend for managing the game automation process.",
++    version="1.0.0"
++)
++
++# Initialize the core service
++automation_service = AutomationService()
++
++# Ensure directories exist
++os.makedirs("src/static/css", exist_ok=True)
++os.makedirs("src/static/js", exist_ok=True)
++os.makedirs("src/templates", exist_ok=True)
++
++app.mount("/static", StaticFiles(directory="src/static"), name="static")
++templates = Jinja2Templates(directory="src/templates")
++
++class StandardResponse(BaseModel):
++    status: str
++    message: str
++
++@app.exception_handler(Exception)
++async def global_exception_handler(request: Request, exc: Exception):
++    """
++    Global exception handler to never expose stack traces to the client.
++    """
++    return JSONResponse(
++        status_code=500,
++        content={"status": "error", "message": "An internal server error occurred."}
++    )
++
++@app.get("/", response_class=HTMLResponse)
++async def serve_frontend(request: Request):
++    """
++    Serves the main frontend UI.
++    """
++    return templates.TemplateResponse("index.html", {"request": request})
++
++@app.get("/api/status")
++async def get_status():
++    """
++    Returns the current status of the automation service.
++    """
++    try:
++        return {"status": "success", "data": automation_service.get_status()}
++    except Exception as e:
++        raise HTTPException(status_code=500, detail=str(e))
++
++@app.post("/api/start", response_model=StandardResponse)
++async def start_automation():
++    """
++    Starts the automation sequence.
++    """
++    if automation_service.is_running:
++        return JSONResponse(status_code=400, content={"status": "error", "message": "Automation is already running."})
++    
++    automation_service.start()
++    return {"status": "success", "message": "Automation started successfully."}
++
++@app.post("/api/stop", response_model=StandardResponse)
++async def stop_automation():
++    """
++    Stops the automation sequence.
++    """
++    if not automation_service.is_running:
++        return JSONResponse(status_code=400, content={"status": "error", "message": "Automation is not running."})
++        
++    automation_service.stop()
++    return {"status": "success", "message": "Automation stopped successfully."}
+diff --git a/src/core/screen.py b/src/core/screen.py
+new file mode 100644
+index 0000000..e194f33
+--- /dev/null
++++ b/src/core/screen.py
+@@ -0,0 +1,76 @@
++import asyncio
++import time
++import mouse
++import pyautogui
++from PIL import ImageGrab
++
++class ScreenCore:
++    """
++    Core utilities for interacting with screen coordinates and checking screen pixels.
++    """
++    def __init__(self, original_resolution=(2560, 1440)):
++        self.original_width, self.original_height = original_resolution
++        self.screen_width, self.screen_height = pyautogui.size()
++        
++        # Pre-compute checkout coordinates for optimal performance
++        self._checkout_original_coords = [
++            (2357, 1070),
++            (2357, 1162),
++            (2357, 1283)
++        ]
++        
++        self._scaled_coords = [(int(x), int(y)) for x, y in [self.convert_coords(cx, cy) for cx, cy in self._checkout_original_coords]]
++        
++        # Ensure we have a valid bounding box even if scaled coords are empty or malformed
++        if self._scaled_coords:
++            self._min_x = min(x for x, y in self._scaled_coords)
++            self._max_x = max(x for x, y in self._scaled_coords)
++            self._min_y = min(y for x, y in self._scaled_coords)
++            self._max_y = max(y for x, y in self._scaled_coords)
++            self._checkout_bbox = (self._min_x, self._min_y, self._max_x + 1, self._max_y + 1)
++            self._checkout_local_coords = [(x - self._min_x, y - self._min_y) for x, y in self._scaled_coords]
++        else:
++            self._checkout_bbox = (0, 0, 1, 1)
++            self._checkout_local_coords = []
++
++    def convert_coords(self, x: float, y: float) -> tuple[float, float]:
++        """
++        Converts coordinates from the original resolution to the current screen resolution.
++        """
++        return x * self.screen_width / self.original_width, y * self.screen_height / self.original_height
++
++    async def mouse_click(self, x: float, y: float):
++        """
++        Simulates a scaled mouse click at the given coordinates.
++        """
++        await asyncio.sleep(0.1)
++        try:
++            # Attempt to use 'mouse' (which works well on Windows, but often fails on Linux without root)
++            coords = self.convert_coords(x, y)
++            mouse.move(coords[0], coords[1], absolute=True)
++            mouse.click('left')
++        except ImportError:
++            # Fallback to pyautogui which does not need root on Linux for clicking
++            coords = self.convert_coords(x, y)
++            pyautogui.click(coords[0], coords[1])
++        await asyncio.sleep(0.1)
++
++    def check_out(self) -> bool:
++        """
++        Checks the RGB values of specific screen locations to determine if a condition is met.
++        Highly optimized by only capturing the minimal necessary bounding box.
++        """
++        if not self._checkout_bbox:
++            return False
++            
++        screen = ImageGrab.grab(bbox=self._checkout_bbox).load()
++        threshold = 700
++
++        for x, y in self._checkout_local_coords:
++            try:
++                # Check RGB values (first 3 channels)
++                if sum(screen[x, y][:3]) > threshold:
++                    return True
++            except IndexError:
++                pass
++        return False
+diff --git a/src/services/automation.py b/src/services/automation.py
+new file mode 100644
+index 0000000..c39af44
+--- /dev/null
++++ b/src/services/automation.py
+@@ -0,0 +1,150 @@
++import asyncio
++import time
++import logging
++from typing import Optional, List, Dict
++from src.core.screen import ScreenCore
++
++logger = logging.getLogger(__name__)
++
++class AutomationService:
++    """
++    Service responsible for executing the game levels and handling state.
++    """
++    def __init__(self):
++        self.screen_core = ScreenCore()
++        self.is_running = False
++        self._task: Optional[asyncio.Task] = None
++        
++        # Predefined levels mapped from the original ZUP.py/Levels.py
++        self.levels_sequence = [
++            (1, (1303, 800), {}),
++            (2, (1245, 800), {}),
++            (3, (1245, 800), {}),
++            (4, (1245, 800), {}),
++            (5, (1234, 760), {}),
++            (6, (1410, 803), {}),
++            (7, (1232, 808), {}),
++            (8, (1159, 802), {}),
++            (9, (1276, 556), {"delay1": 0.5}),
++            (10, (1186, 591), {}),
++            (11, (1232, 764), {}),
++            (12, (1359, 716), {"delay1": 0.65}),
++            (13, (1361, 636), {"delay1": 0.5}),
++            (14, (1269, 678), {}),
++            (15, (1233, 678), {"delay1": 1}),
++            (16, (1150, 799), {"delay1": 1}),
++            (17, (1354, 1133), {"x2": 947, "y2": 1094, "delay2": 0.5}),
++            (18, (1482, 758), {"delay1": 8}),
++            (19, (1090, 796), {"x2": 1583, "y2": 1138}),
++            (20, (1194, 1135), {"delay1": 2}),
++            (21, (1160, 835), {"x2": 1361, "y2": 584, "delay1": 0, "delay2": 0.25}),
++            (22, (1297, 841), {}),
++            (23, (1325, 761), {}),
++            (24, (1276, 461), {"delay1": 0.5}),
++            (25, (416, 581), {"x2": 1117, "y2": 801, "x3": 826, "y3": 789, "delay2": 0.5, "delay3": 0.35}),
++            (26, (1000, 833), {"delay1": 0.85}),
++            (27, (489, 874), {"x2": 902, "y2": 1034, "delay1": 0, "delay2": 0.5}),
++            (28, (1406, 747), {"x2": 1573, "y2": 888, "x3": 1375, "y3": 1087, "delay2": 1.85, "delay3": 0.25}),
++            (29, (910, 1091), {"reset_time": 10}),
++            (30, (1069, 1091), {"delay1": 1.5}),
++            (31, (777, 608), {"delay1": 0.17}),
++            (32, (924, 1052), {}),
++            (33, (489, 876), {"x2": 914, "y2": 1030, "delay1": 0, "delay2": 0.8}),
++            (34, (122, 640), {"x2": 530, "y2": 792, "delay1": 0, "delay2": 0.85}),
++            (35, (122, 640), {"x2": 530, "y2": 792, "delay1": 0, "delay2": 0.95}),
++            (36, (1258, 497), {"x2": 1618, "y2": 761, "delay1": 0, "delay2": 2.5}),
++            (37, (1779, 970), {}),
++            (38, (155, 531), {"reset_time": 10}),
++            (39, (155, 532), {"x2": 1851, "y2": 1119, "delay1": 0, "delay2": 3}),
++            (40, (740, 597), {"delay1": 1.25}),
++            (41, (1456, 331), {"delay1": 0, "reset_time": 10}),
++            (42, (137, 435), {"delay1": 1.5}),
++            (43, (137, 435), {"delay1": 0}),
++            (44, (285, 839), {"x2": 656, "y2": 999, "delay1": 0, "delay2": 0.55, "reset_time": 10}),
++        ]
++
++    async def _reset_level(self):
++        """Simulate clicking the reset button."""
++        await self.screen_core.mouse_click(73, 1376)
++        await asyncio.sleep(0.5)
++
++    async def _out(self):
++        """Simulate clicking the 'Out' or next level marker."""
++        await self.screen_core.mouse_click(2357, 1161)
++
++    async def _press_start(self):
++        """Simulate clicking 'start'."""
++        await self.screen_core.mouse_click(408, 1255)
++
++    async def _run_level_template(self, level_number: int, x1: float, y1: float, **kwargs):
++        """
++        Executes a single level template, handling retry logic.
++        """
++        x2 = kwargs.get('x2')
++        y2 = kwargs.get('y2')
++        x3 = kwargs.get('x3')
++        y3 = kwargs.get('y3')
++        delay1 = kwargs.get('delay1')
++        delay2 = kwargs.get('delay2')
++        delay3 = kwargs.get('delay3')
++        reset_time = kwargs.get('reset_time', 5)
++
++        while self.is_running:
++            await self._reset_level()
++
++            if delay1: await asyncio.sleep(delay1)
++            await self.screen_core.mouse_click(x1, y1)
++
++            if delay2: await asyncio.sleep(delay2)
++            if x2 and y2: await self.screen_core.mouse_click(x2, y2)
++
++            if delay3: await asyncio.sleep(delay3)
++            if x3 and y3: await self.screen_core.mouse_click(x3, y3)
++
++            start_time = time.time()
++            
++            level_completed = False
++            while self.is_running and self.screen_core.check_out():
++                if time.time() - start_time > reset_time:
++                    logger.info(f"Timeout on level {level_number}. Retrying...")
++                    break
++                await asyncio.sleep(0.01)
++            else:
++                if self.is_running:
++                    await self._out()
++                    logger.info(f"Level {level_number} completed.")
++                    level_completed = True
++            
++            if level_completed or not self.is_running:
++                break
++
++    async def _run_sequence(self):
++        """Executes all predefined game levels."""
++        try:
++            await self._press_start()
++            for level_num, (x1, y1), kwargs in self.levels_sequence:
++                if not self.is_running:
++                    break
++                await self._run_level_template(level_num, x1, y1, **kwargs)
++        except Exception as e:
++            logger.error(f"Error in automation sequence: {e}")
++        finally:
++            self.is_running = False
++
++    def start(self):
++        """Starts the automation service."""
++        if not self.is_running:
++            self.is_running = True
++            self._task = asyncio.create_task(self._run_sequence())
++
++    def stop(self):
++        """Stops the automation service."""
++        self.is_running = False
++        if self._task and not self._task.done():
++            self._task.cancel()
++
++    def get_status(self) -> Dict:
++        """Returns the current state of the automation."""
++        return {
++            "status": "running" if self.is_running else "stopped"
++        }
+diff --git a/src/templates/index.html b/src/templates/index.html
+new file mode 100644
+index 0000000..7713cd0
+--- /dev/null
++++ b/src/templates/index.html
+@@ -0,0 +1,214 @@
++<!DOCTYPE html>
++<html lang="en" class="antialiased text-slate-900 bg-slate-50">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <title>ZUP! Automation Dashboard</title>
++    <!-- Tailwind CSS via CDN for rapid development without a build step for this scale -->
++    <script src="https://cdn.tailwindcss.com"></script>
++    <script>
++        tailwind.config = {
++            theme: {
++                extend: {
++                    colors: {
++                        brand: {
++                            50: '#eff6ff',
++                            100: '#dbeafe',
++                            500: '#3b82f6',
++                            600: '#2563eb',
++                            700: '#1d4ed8',
++                        }
++                    },
++                    animation: {
++                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
++                    }
++                }
++            }
++        }
++    </script>
++    <style>
++        .toast-enter { opacity: 0; transform: translateY(100%); }
++        .toast-enter-active { opacity: 1; transform: translateY(0); transition: all 300ms ease-out; }
++        .toast-exit { opacity: 1; transform: translateY(0); }
++        .toast-exit-active { opacity: 0; transform: scale(0.9); transition: all 200ms ease-in; }
++    </style>
++</head>
++<body class="min-h-screen flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
++
++    <div class="w-full max-w-md space-y-8 bg-white p-10 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100">
++        <div>
++            <div class="w-16 h-16 bg-brand-100 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
++                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
++                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
++                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
++                </svg>
++            </div>
++            <h2 class="text-center text-3xl font-extrabold text-slate-900 tracking-tight">ZUP! Automator</h2>
++            <p class="mt-2 text-center text-sm text-slate-500">Control the automated gameplay sequence</p>
++        </div>
++
++        <div class="space-y-6 mt-8">
++            <!-- Status Card with Skeleton/Loading state -->
++            <div id="statusCard" class="bg-slate-50 rounded-xl p-5 border border-slate-200 transition-all duration-300 relative overflow-hidden">
++                <div class="flex justify-between items-center relative z-10">
++                    <span class="text-sm font-medium text-slate-500">System Status</span>
++                    
++                    <!-- Loading Skeleton -->
++                    <div id="statusSkeleton" class="h-6 w-24 bg-slate-200 rounded animate-pulse"></div>
++                    
++                    <!-- Actual Status (Hidden initially) -->
++                    <span id="statusBadge" class="hidden inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 transition-colors duration-300">
++                        <svg id="statusDot" class="-ml-0.5 mr-1.5 h-2 w-2 text-slate-400 transition-colors duration-300" fill="currentColor" viewBox="0 0 8 8">
++                            <circle cx="4" cy="4" r="3" />
++                        </svg>
++                        <span id="statusText">Unknown</span>
++                    </span>
++                </div>
++            </div>
++
++            <!-- Action Buttons -->
++            <div class="grid grid-cols-2 gap-4">
++                <button id="btnStart" onclick="startAutomation()" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
++                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
++                        <svg class="h-5 w-5 text-brand-500 group-hover:text-brand-400 transition-colors" fill="currentColor" viewBox="0 0 20 20">
++                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
++                        </svg>
++                    </span>
++                    Start Automation
++                </button>
++
++                <button id="btnStop" onclick="stopAutomation()" class="group relative w-full flex justify-center py-3 px-4 border border-slate-300 text-sm font-semibold rounded-xl text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
++                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
++                        <svg class="h-5 w-5 text-slate-400 group-hover:text-slate-500 transition-colors" fill="currentColor" viewBox="0 0 20 20">
++                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd" />
++                        </svg>
++                    </span>
++                    Stop Sequence
++                </button>
++            </div>
++        </div>
++    </div>
++
++    <!-- Toast Notification Container -->
++    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
++
++    <script>
++        // DOM Elements
++        const statusSkeleton = document.getElementById('statusSkeleton');
++        const statusBadge = document.getElementById('statusBadge');
++        const statusDot = document.getElementById('statusDot');
++        const statusText = document.getElementById('statusText');
++        const statusCard = document.getElementById('statusCard');
++        const btnStart = document.getElementById('btnStart');
++        const btnStop = document.getElementById('btnStop');
++
++        // Elegant Toast System
++        function showToast(message, type = 'success') {
++            const container = document.getElementById('toastContainer');
++            const toast = document.createElement('div');
++            
++            const bgClass = type === 'success' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200';
++            const icon = type === 'success' 
++                ? `<svg class="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>`
++                : `<svg class="w-5 h-5 text-rose-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>`;
++
++            toast.className = `flex items-center p-4 border rounded-xl shadow-lg transition-all transform toast-enter ${bgClass}`;
++            toast.innerHTML = `<div class="flex-shrink-0">${icon}</div><div class="ml-3 text-sm font-medium">${message}</div>`;
++            
++            container.appendChild(toast);
++            
++            // Trigger animation
++            requestAnimationFrame(() => {
++                toast.classList.remove('toast-enter');
++                toast.classList.add('toast-enter-active');
++            });
++
++            setTimeout(() => {
++                toast.classList.add('toast-exit-active');
++                setTimeout(() => toast.remove(), 200);
++            }, 3000);
++        }
++
++        // Update UI based on status
++        function updateUI(isRunning) {
++            // Hide skeleton, show actual badge
++            statusSkeleton.classList.add('hidden');
++            statusBadge.classList.remove('hidden');
++
++            if (isRunning) {
++                statusBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 transition-colors duration-300';
++                statusDot.className = '-ml-0.5 mr-2 h-2 w-2 text-emerald-500 animate-pulse';
++                statusText.textContent = 'Running';
++                statusCard.classList.add('border-emerald-200', 'bg-emerald-50/50');
++                
++                btnStart.disabled = true;
++                btnStop.disabled = false;
++            } else {
++                statusBadge.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 transition-colors duration-300';
++                statusDot.className = '-ml-0.5 mr-2 h-2 w-2 text-slate-400';
++                statusText.textContent = 'Stopped';
++                statusCard.classList.remove('border-emerald-200', 'bg-emerald-50/50');
++
++                btnStart.disabled = false;
++                btnStop.disabled = true;
++            }
++        }
++
++        // Fetch Status
++        async function fetchStatus() {
++            try {
++                const response = await fetch('/api/status');
++                if (!response.ok) throw new Error('Network response was not ok');
++                const result = await response.json();
++                
++                if (result.status === 'success') {
++                    const isRunning = result.data.status === 'running';
++                    updateUI(isRunning);
++                }
++            } catch (error) {
++                console.error('Error fetching status:', error);
++                statusSkeleton.classList.remove('hidden');
++                statusBadge.classList.add('hidden');
++            }
++        }
++
++        // API Calls
++        async function callApi(endpoint, successMessage) {
++            try {
++                // Optimistic UI update could go here
++                
++                const response = await fetch(endpoint, {
++                    method: 'POST',
++                    headers: { 'Content-Type': 'application/json' }
++                });
++                
++                const data = await response.json();
++                
++                if (response.ok && data.status === 'success') {
++                    showToast(successMessage, 'success');
++                    fetchStatus(); // Refresh actual status
++                } else {
++                    showToast(data.message || 'An error occurred', 'error');
++                }
++            } catch (error) {
++                showToast('Network error occurred while contacting the server.', 'error');
++                fetchStatus();
++            }
++        }
++
++        function startAutomation() {
++            btnStart.disabled = true; // Prevent double clicks
++            callApi('/api/start', 'Automation sequence started.');
++        }
++
++        function stopAutomation() {
++            btnStop.disabled = true;
++            callApi('/api/stop', 'Automation sequence stopped.');
++        }
++
++        // Initialize polling
++        fetchStatus();
++        setInterval(fetchStatus, 2000); // Poll every 2 seconds
++    </script>
++</body>
++</html>
+\ No newline at end of file
+
