@@ -1,0 +1,38 @@
+[project]
+name = "zup-game-bot"
+version = "0.1.0"
+description = "Automated gameplay bot for Zup! on Steam using PyAutoGUI and dynamic coordinate scaling"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Carlos Valente", email = "cfmvcarlos@gmail.com" }
+]
+dependencies = [
+    "keyboard>=0.13.5",
+    "mouse>=0.7.1",
+    "pillow>=10.0.0",
+    "pyautogui>=0.9.54",
+]
+
+[dependency-groups]
+dev = [
+    "basedpyright>=1.28.0",
+    "pydoclint>=0.6.2",
+    "ruff>=0.9.0",
+    "ty>=0.0.86",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.pydoclint]
+style = "numpy"
+exclude = '\.venv|\.agents|__pycache__'
+
+[tool.basedpyright]
+typeCheckingMode = "standard"
+exclude = [".venv", ".agents"]

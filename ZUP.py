@@ -1,61 +1,81 @@
+"""Main execution orchestrator for Zup! automated gameplay bot.
+
+Listens for keyboard input to start the automated sequence or exit gracefully.
+Initiates game startup and runs through configured level automation routines.
+"""
+
+from __future__ import annotations
+
 import asyncio
+from typing import Final
+
 import keyboard
-from Levels import run_levels  # Import function to run game levels
-# Import function for mouse click actions
+
 from common import mouse_click
+from Levels import run_levels
+
+START_BUTTON_COORDS: Final[tuple[int, int]] = (408, 1255)
 
 
-# Simulates a mouse click at a specific screen coordinate
-async def press_start():
+async def press_start() -> None:
+    """Simulate a mouse click at the start menu coordinates.
+
+    Dispatches a left click to the game start button at reference coordinates
+    (408, 1255).
+
+    Returns
+    -------
+    None
     """
-    Simulates a mouse click at the coordinates (408, 1255).
-    Used to start the game.
-    """
-    await mouse_click(408, 1255)
+    await mouse_click(*START_BUTTON_COORDS)
 
 
-# Main game logic: Starts the game and runs through all levels
-async def run_game():
-    """
-    Initiates the game by clicking 'start' and runs through the game levels.
+async def run_game() -> None:
+    """Initiate game startup and execute all level sequences sequentially.
+
+    Clicks the game start button and invokes the level automation loop
+    until all levels are completed.
+
+    Returns
+    -------
+    None
     """
     await press_start()
     await run_levels()
 
-# Main program loop to handle keyboard inputs and control the game
 
+async def main() -> None:
+    """Handle keyboard input loop and lifecycle of the automation task.
 
-async def main():
-    """
-    Entry point for the program. 
-    - Waits for the 'Enter' key to start the game.
-    - Allows the user to exit the program by pressing 'Esc'.
+    Polls keyboard state for control hotkeys:
+    - Press 'Enter' to start level automation if not already running.
+    - Press 'Esc' to cancel active execution and exit the program.
+
+    Returns
+    -------
+    None
     """
     print("Press Enter to start the game. Press Esc to stop the program.")
 
-    game_task = None  # Keeps track of the current game task
+    game_task: asyncio.Task[None] | None = None
 
     while True:
-        # Start the game if 'Enter' is pressed and no game is running
-        if keyboard.is_pressed('enter') and game_task is None:
+        if keyboard.is_pressed("enter") and game_task is None:
             print("Game started!")
-            game_task = asyncio.create_task(
-                run_game())  # Start the game task in the background
+            game_task = asyncio.create_task(run_game())
 
-        # Exit the program if 'Esc' is pressed
-        elif keyboard.is_pressed('esc'):
+        elif keyboard.is_pressed("esc"):
             print("Program exited.")
-            if game_task and not game_task.done():
-                game_task.cancel()  # Cancel the game task if still running
+            if game_task is not None and not game_task.done():
+                game_task.cancel()
+                try:
+                    await game_task
+                except asyncio.CancelledError:
+                    pass
             break
 
-        # Sleep briefly to prevent high CPU usage
         await asyncio.sleep(0.1)
 
 
-# Run the main function
 if __name__ == "__main__":
-    """
-    Ensures the script runs the `main()` function when executed directly.
-    """
     asyncio.run(main())
