@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Final
 
-from common import level_template_click
+from src.common import level_template_click
 
 
 @dataclass(frozen=True)

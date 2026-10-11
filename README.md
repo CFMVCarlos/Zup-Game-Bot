@@ -49,10 +49,12 @@ The bot features dynamic coordinate scaling from a reference 2560×1440 canvas t
 
 ```
 Zup-Game-Bot/
-├── common.py          # Screen scaling, async mouse clicks, and RGB pixel verification
-├── Levels.py          # Data-driven LevelConfig definitions and level loop (1–44)
-├── ZUP.py             # Main entry point with keyboard listener and task lifecycle
-├── getMouse.py        # Calibration utility printing real-time cursor coordinates
+├── src/
+│   ├── __init__.py    # Source package marker
+│   ├── common.py      # Screen scaling, async mouse clicks, and RGB pixel verification
+│   ├── Levels.py      # Data-driven LevelConfig definitions and level loop (1–44)
+│   ├── ZUP.py         # Main entry point with keyboard listener and task lifecycle
+│   └── getMouse.py    # Calibration utility printing real-time cursor coordinates
 ├── pyproject.toml     # Project configuration, dependencies, and tool settings
 ├── requirements.txt   # Traditional pip dependency manifest
 └── LICENSE            # MIT License
@@ -60,10 +62,10 @@ Zup-Game-Bot/
 
 ### Module Responsibilities
 
-- **[`common.py`](file:///home/cfmv/projects/Zup-Game-Bot/common.py)**: Contains `convert_coords` for resolution mapping, `mouse_click` for left-click simulation, `checkOut` for localized pixel brightness sampling, `Reset` to trigger level resets, and `level_template_click` to coordinate multi-click level sequences with timeout retries.
-- **[`Levels.py`](file:///home/cfmv/projects/Zup-Game-Bot/Levels.py)**: Houses the frozen dataclass `LevelConfig` and the comprehensive `LEVEL_CONFIGS` registry of all 44 levels with their precise timing delays and coordinate parameters.
-- **[`ZUP.py`](file:///home/cfmv/projects/Zup-Game-Bot/ZUP.py)**: The primary application loop that listens for <kbd>Enter</kbd> to launch `run_game()` and <kbd>Esc</kbd> to exit.
-- **[`getMouse.py`](file:///home/cfmv/projects/Zup-Game-Bot/getMouse.py)**: Event-driven mouse listener that outputs exact screen coordinates whenever the user clicks, enabling rapid calibration of new levels.
+- **[`src/common.py`](file:///home/cfmv/projects/Zup-Game-Bot/src/common.py)**: Contains `convert_coords` for resolution mapping, `mouse_click` for left-click simulation, `checkOut` for localized pixel brightness sampling, `Reset` to trigger level resets, and `level_template_click` to coordinate multi-click level sequences with timeout retries.
+- **[`src/Levels.py`](file:///home/cfmv/projects/Zup-Game-Bot/src/Levels.py)**: Houses the frozen dataclass `LevelConfig` and the comprehensive `LEVEL_CONFIGS` registry of all 44 levels with their precise timing delays and coordinate parameters.
+- **[`src/ZUP.py`](file:///home/cfmv/projects/Zup-Game-Bot/src/ZUP.py)**: The primary application loop that listens for <kbd>Enter</kbd> to launch `run_game()` and <kbd>Esc</kbd> to exit.
+- **[`src/getMouse.py`](file:///home/cfmv/projects/Zup-Game-Bot/src/getMouse.py)**: Event-driven mouse listener that outputs exact screen coordinates whenever the user clicks, enabling rapid calibration of new levels.
 
 ---
 
@@ -109,8 +111,8 @@ pip install -r requirements.txt
 If adjusting level positions or verifying monitor scaling, run:
 
 ```bash
-uv run python getMouse.py
-# Or: python getMouse.py
+uv run python -m src.getMouse
+# Or: python -m src.getMouse
 ```
 
 Click anywhere on the screen to view the terminal coordinates. Press <kbd>Ctrl</kbd> + <kbd>C</kbd> to exit.
@@ -120,8 +122,8 @@ Click anywhere on the screen to view the terminal coordinates. Press <kbd>Ctrl</
 1. Open **Zup!** on Steam.
 2. In your terminal, start the bot:
    ```bash
-   uv run python ZUP.py
-   # Or: python ZUP.py
+   uv run python -m src.ZUP
+   # Or: python -m src.ZUP
    ```
 3. Focus the game window and press <kbd>Enter</kbd> to begin.
 4. Press <kbd>Esc</kbd> at any point to stop execution.

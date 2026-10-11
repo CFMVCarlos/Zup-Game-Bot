@@ -36,3 +36,4 @@ exclude = '\.venv|\.agents|__pycache__'
 [tool.basedpyright]
 typeCheckingMode = "standard"
 exclude = [".venv", ".agents"]
+extraPaths = ["src"]

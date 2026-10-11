@@ -11,8 +11,8 @@ from typing import Final
 
 import keyboard
 
-from common import mouse_click
-from Levels import run_levels
+from src.common import mouse_click
+from src.Levels import run_levels
 
 START_BUTTON_COORDS: Final[tuple[int, int]] = (408, 1255)
 
