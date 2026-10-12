@@ -161,3 +161,10 @@ This project is open-source and distributed under the [MIT License](LICENSE).
 
 Developed by **[Carlos Valente](https://github.com/CFMVCarlos)**.
 Contributions, bug reports, and suggestions are welcome!
+## Development
+
+To enable automated commit message validation with gitlint:
+```bash
+git config core.hooksPath .githooks
+```
+

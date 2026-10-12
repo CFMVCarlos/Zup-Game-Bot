@@ -213,10 +213,10 @@ async def run_levels(start_level: int = 1, end_level: int = 44) -> None:
 
     Parameters
     ----------
-    start_level : int
-        First level to execute (1-indexed), by default 1.
-    end_level : int
-        Last level to execute inclusive, by default 44.
+    start_level : int, default=1
+        First level to execute (1-indexed).
+    end_level : int, default=44
+        Last level to execute inclusive.
 
     Returns
     -------

@@ -62,8 +62,8 @@ async def mouse_click(x: int, y: int, delay: float = 0.1) -> None:
         Target horizontal coordinate in reference resolution.
     y : int
         Target vertical coordinate in reference resolution.
-    delay : float
-        Delay in seconds before and after the click, by default 0.1.
+    delay : float, default=0.1
+        Delay in seconds before and after the click.
 
     Returns
     -------
@@ -110,8 +110,8 @@ def checkOut(threshold: int = 700) -> bool:
 
     Parameters
     ----------
-    threshold : int
-        Combined RGB brightness threshold, by default 700.
+    threshold : int, default=700
+        Combined RGB brightness threshold.
 
     Returns
     -------
@@ -193,22 +193,22 @@ async def level_template_click(
         Primary target horizontal coordinate in reference resolution.
     y1 : int
         Primary target vertical coordinate in reference resolution.
-    x2 : int | None
-        Secondary target horizontal coordinate, by default None.
-    y2 : int | None
-        Secondary target vertical coordinate, by default None.
-    x3 : int | None
-        Tertiary target horizontal coordinate, by default None.
-    y3 : int | None
-        Tertiary target vertical coordinate, by default None.
-    delay1 : float | None
-        Delay in seconds prior to first click, by default None.
-    delay2 : float | None
-        Delay in seconds prior to second click, by default None.
-    delay3 : float | None
-        Delay in seconds prior to third click, by default None.
-    reset_time : float
-        Maximum seconds to wait for level completion before retrying, by default 5.0.
+    x2 : int | None, default=None
+        Secondary target horizontal coordinate.
+    y2 : int | None, default=None
+        Secondary target vertical coordinate.
+    x3 : int | None, default=None
+        Tertiary target horizontal coordinate.
+    y3 : int | None, default=None
+        Tertiary target vertical coordinate.
+    delay1 : float | None, default=None
+        Delay in seconds prior to first click.
+    delay2 : float | None, default=None
+        Delay in seconds prior to second click.
+    delay3 : float | None, default=None
+        Delay in seconds prior to third click.
+    reset_time : float, default=5.0
+        Maximum seconds to wait for level completion before retrying.
 
     Returns
     -------

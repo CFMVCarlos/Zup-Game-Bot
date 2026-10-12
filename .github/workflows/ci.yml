@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitlint:
+    name: Gitlint Commit Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python 3.13
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Validate PR commit messages
+        run: |
+          uv run gitlint --commits "origin/${{ github.base_ref }}...HEAD"
+
+  quality:
+    name: Code Quality, Lint & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          version: "latest"
+
+      - name: Set up Python 3.13
+        run: uv python install 3.13
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Format check (Ruff)
+        run: uv run ruff format --check .
+
+      - name: Lint check (Ruff)
+        run: uv run ruff check .
+
+      - name: Docstring validation (pydoclint)
+        run: uv run pydoclint .
+
+      - name: Type checking (Basedpyright)
+        run: uv run basedpyright
+
+      - name: Run unit tests (pytest)
+        run: uv run pytest
